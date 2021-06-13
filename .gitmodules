@@ -22,3 +22,6 @@
 [submodule "lib/printf"]
 	path = lib/printf
 	url = https://github.com/qmk/printf
+[submodule "keyboards/helix/rev3_5rows/keymaps/ryo33/a2j"]
+	path = keyboards/helix/rev3_5rows/keymaps/ryo33/a2j
+	url = https://github.com/m47ch4n/qmk-translate-ansi-to-jis.git
