@@ -22,10 +22,10 @@
 #define LSTAB LSFT(KC_TAB)
 #define ADJUST MO(_ADJUST)
 #define LGU_ENT LGUI_T(KC_ENT)
-#define LCT_SPC LCTL_T(KC_SPC)
-#define LSF_SPC LSFT_T(KC_SPC)
 #define RGU_ENT RGUI_T(KC_ENT)
+#define LCT_SPC LCTL_T(KC_SPC)
 #define RCT_SPC RCTL_T(KC_SPC)
+#define LSF_SPC LSFT_T(KC_SPC)
 #define RSF_SPC RSFT_T(KC_SPC)
 
 
@@ -48,10 +48,10 @@ int8_t HOST_LAYOUT = Colemak;
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [_COLEMAK] = LAYOUT( \
       KC_Q   , KC_W,    KC_F,    KC_P,    KC_G,    XXXXXXX,                   KC_ZKHK, KC_J,    KC_L,    KC_U,    KC_Y,    XXXXXXX, \
-      KC_A,    KC_R,    KC_S,    KC_T,    KC_D,    XXXXXXX,                   XXXXXXX, KC_H,    KC_N,    KC_E,    KC_I,    KC_O,    \
+      KC_A,    KC_R,    KC_S,    KC_T,    KC_D,    EISU   ,                   KANA   , KC_H,    KC_N,    KC_E,    KC_I,    KC_O,    \
       KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    LSTAB  ,                   KC_TAB , KC_K,    KC_M,    KC_COMM, KC_DOT , KC_SLSH, \
       KC_LALT, TMUX   , KC_ESC , KC_BSPC, LCT_SPC, LGU_ENT, EISU   , KANA   , RGU_ENT, RCT_SPC, KC_BSPC, KC_ESC , KC_UP,   KC_RALT, \
-      ADJUST , XXXXXXX, XXXXXXX, NUMBER , LSF_SPC, LGU_ENT, KC_ESC , KC_ESC , RGU_ENT, RSF_SPC, NUMBER , KC_LEFT, KC_DOWN, KC_RGHT  \
+      ADJUST , KC_LCTR, KC_LSFT, NUMBER , LSF_SPC, LGU_ENT, KC_LGUI, KC_RGUI, RGU_ENT, RSF_SPC, NUMBER , KC_LEFT, KC_DOWN, KC_RGHT  \
       ),
 
   [_NUMBER] = LAYOUT( \
@@ -156,11 +156,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
     case EISU:
       if (record->event.pressed) {
-        if (is_mac_mode()) {
-          register_code(KC_LANG2);
-        }else{
-          tap_code16(LALT(KC_GRAVE));
-        }
+        register_code(KC_LANG2);
       } else {
         unregister_code(KC_LANG2);
       }
@@ -168,11 +164,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       break;
     case KANA:
       if (record->event.pressed) {
-        if (is_mac_mode()) {
-          register_code(KC_LANG1);
-        }else{
-          tap_code16(LALT(KC_GRAVE));
-        }
+        register_code(KC_LANG1);
       } else {
         unregister_code(KC_LANG1);
       }
