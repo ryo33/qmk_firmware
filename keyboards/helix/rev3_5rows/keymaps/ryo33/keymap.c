@@ -17,10 +17,12 @@
 #include "layer_number.h"
 #include "colemak_translation.h"
 #include "a2j/translate_ansi_to_jis.h"
+#include "isomorphic_keyboard.h"
 
 #define TMUX LCTL(KC_B)
 #define LSTAB LSFT(KC_TAB)
 #define ADJUST MO(_ADJUST)
+#define MIDI MO(_MIDI)
 #define LGU_ENT LGUI_T(KC_ENT)
 #define RGU_ENT RGUI_T(KC_ENT)
 #define LCT_SPC LCTL_T(KC_SPC)
@@ -47,11 +49,11 @@ int8_t HOST_LAYOUT = Colemak;
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [_COLEMAK] = LAYOUT( \
-      KC_Q   , KC_W,    KC_F,    KC_P,    KC_G,    XXXXXXX,                   KC_ZKHK, KC_J,    KC_L,    KC_U,    KC_Y,    XXXXXXX, \
+      KC_Q   , KC_W,    KC_F,    KC_P,    KC_G,    MI_ON  ,                   KC_ZKHK, KC_J,    KC_L,    KC_U,    KC_Y,    XXXXXXX, \
       KC_A,    KC_R,    KC_S,    KC_T,    KC_D,    EISU   ,                   KANA   , KC_H,    KC_N,    KC_E,    KC_I,    KC_O,    \
       KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    LSTAB  ,                   KC_TAB , KC_K,    KC_M,    KC_COMM, KC_DOT , KC_SLSH, \
       KC_LALT, TMUX   , KC_ESC , KC_BSPC, LCT_SPC, LGU_ENT, EISU   , KANA   , RGU_ENT, RCT_SPC, KC_BSPC, KC_ESC , KC_UP,   KC_RALT, \
-      ADJUST , KC_LCTR, KC_LSFT, NUMBER , LSF_SPC, LGU_ENT, KC_LGUI, KC_RGUI, RGU_ENT, RSF_SPC, NUMBER , KC_LEFT, KC_DOWN, KC_RGHT  \
+      ADJUST , KC_LCTL, KC_LSFT, NUMBER , LSF_SPC, LGU_ENT, KC_LGUI, KC_RGUI, RGU_ENT, RSF_SPC, NUMBER , KC_LEFT, KC_DOWN, KC_RGHT  \
       ),
 
   [_NUMBER] = LAYOUT( \
@@ -71,11 +73,19 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
       ),
 
   [_ADJUST] =  LAYOUT( \
-      KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,                     KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  KC_F12, \
-      HCOLEMK, _______, _______, _______, _______, _______,                   _______, _______, _______, _______, _______, _______, \
-      HUS    , _______, _______, _______, _______, _______,                   _______, _______, _______, _______, _______, _______, \
-      HJP    , _______, _______, _______, _______, _______, RESET  , KC_PWR , KC_WAKE, _______, RGB_TOG, RGB_HUI, RGB_SAI, RGB_VAI, \
-      _______, _______, _______, KC_CAPS, KC_NLCK, KC_SLCK, _______, _______, _______, RGBRST , RGB_MOD, RGB_HUD, RGB_SAD, RGB_VAD \
+      KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,                     KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  KC_F12 , \
+      HCOLEMK, KC_CAPS, _______, _______, _______, _______,                   _______, _______, _______, _______, _______, _______, \
+      HUS    , KC_NLCK, _______, _______, _______, _______,                   _______, _______, _______, _______, _______, _______, \
+      HJP    , KC_SLCK, _______, _______, XXXXXXX, XXXXXXX, MIDI   , _______, XXXXXXX, XXXXXXX, RGB_TOG, RGB_HUI, RGB_SAI, RGB_VAI, \
+      _______, _______, _______, _______, XXXXXXX, XXXXXXX, RESET  , XXXXXXX, XXXXXXX, XXXXXXX, RGBRST , RGB_HUD, RGB_SAD, RGB_VAD  \
+      ),
+
+  [_MIDI] =  LAYOUT( \
+      _______, _______, _______, _______, _______, _______,                   _______, _______, _______, _______, _______, _______, \
+      _______, _______, _______, _______, _______, _______,                   _______, _______, _______, _______, _______, _______, \
+      _______, _______, _______, _______, _______, _______,                   _______, _______, _______, _______, _______, _______, \
+      _______, _______, _______, _______, _______, _______, _______, MI_OFF , _______, _______, _______, _______, _______, _______, \
+      _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______  \
       ) 
 
 };
@@ -104,7 +114,31 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
     return true;
 }
 
+bool MIDI_MODE = false;
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+  if (keycode == MIDI) {
+    return true;
+  }
+  if (IS_LAYER_ON(_MIDI)) {
+    if (record->event.pressed) {
+      if (keycode == MI_OFF) {
+        MIDI_MODE = false;
+        layer_off(_ADJUST);
+        layer_off(_MIDI);
+        return false;
+      }
+      midi_transpose_colrow(record->event.key.col, record->event.key.row);
+    }
+    return false;
+  }
+  if (MIDI_MODE) {
+    uint16_t midi_keycode = midi_keycode_from_colrow(record->event.key.col, record->event.key.row);
+    if (midi_keycode != 0) {
+      process_midi(midi_keycode, record);
+    }
+    return false;
+  }
   if (HOST_LAYOUT == Colemak && !translate_colemak_to_ansi(&keycode)) {
     if (record->event.pressed) {
       register_code16(keycode);
@@ -178,6 +212,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         }
       #endif
       break;
+    case MI_ON:
+      if (record->event.pressed) {
+        MIDI_MODE = true;
+        // Covers on mod-tap keys causing latency.
+        layer_on(_ADJUST);
+      }
+      return false;
   }
   return true;
 }
@@ -185,4 +226,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
 void matrix_init_user(void) {
     INIT_HELIX_OLED(); /* define in layer_number.h */
+}
+
+
+void keyboard_post_init_user(void) {
+  midi_config.octave = 0;
 }

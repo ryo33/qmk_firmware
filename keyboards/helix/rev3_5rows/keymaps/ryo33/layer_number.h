@@ -10,7 +10,8 @@ enum layer_names {
   _COLEMAK = 0,
   _NUMBER,
   _DOUBLE,
-  _ADJUST
+  _ADJUST,
+  _MIDI
 };
 
 enum host_layout {
@@ -21,6 +22,7 @@ enum host_layout {
 
 extern int8_t HOST_LAYOUT;
 extern int8_t NUMBER_PRESSED;
+extern bool MIDI_MODE;
 
 #if defined(SSD1306OLED)
 extern void init_helix_oled(void);

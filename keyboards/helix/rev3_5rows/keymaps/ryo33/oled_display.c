@@ -95,8 +95,8 @@ static void render_logo(void) {
 
 // static const char Qwerty_name[]  PROGMEM = " Qwerty";
 static const char Colemak_name[] PROGMEM = "Colemak";
-static const char Number_name[]   PROGMEM = ":Number";
-static const char Double_name[]   PROGMEM = ":Double";
+static const char Number_name[]  PROGMEM = ":Number";
+static const char Double_name[]  PROGMEM = ":Double";
 static const char Adjust_name[]  PROGMEM = ":Adjust";
 static const char US_name[] PROGMEM = "US";
 static const char JP_name[] PROGMEM = "JIS";
@@ -132,11 +132,15 @@ void render_status(void) {
         oled_write_P(os_logo[1][1], false);
     }
 
-    // Define layers here, Have not worked out how to have text displayed for each layer. Copy down the number you see and add a case for it below
     oled_write_P(PSTR(" "), false);
-    oled_write_P(layer_names[current_default_layer], false);
-    oled_write_P(PSTR("/"), false);
-    oled_write_P(host_layout_name[HOST_LAYOUT], false);
+    if (MIDI_MODE) {
+        oled_write_P(PSTR("MIDI"), false);
+    } else {
+        // Define layers here, Have not worked out how to have text displayed for each layer. Copy down the number you see and add a case for it below
+        oled_write_P(layer_names[current_default_layer], false);
+        oled_write_P(PSTR("/"), false);
+        oled_write_P(host_layout_name[HOST_LAYOUT], false);
+    }
     oled_write_P(PSTR("\n"), false);
 
     if (NUMBER_PRESSED == 1) {
@@ -145,7 +149,8 @@ void render_status(void) {
     if (NUMBER_PRESSED == 2) {
         oled_write_P(layer_names[_DOUBLE], false);
     }
-    if (layer_state >> _ADJUST & 1) {
+    if ((MIDI_MODE && IS_LAYER_ON_STATE(layer_state, _MIDI))
+        || (!MIDI_MODE && IS_LAYER_ON_STATE(layer_state, _ADJUST))) {
         oled_write_P(layer_names[_ADJUST], false);
     }
 
